@@ -24,12 +24,12 @@ export default function Main() {
           />
         </View>
       </View>
-      <Button
+      {/* <Button
         style={styles.searchButton}
         buttonColor="#EDEFEE"
         textColor="#777"
         icon="search-web"
-      ></Button>
+      ></Button> */}
     </View>
   );
 }
