@@ -1,4 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { createContext } from "react";
+
+export const AuthContext = createContext();
 
 export const storeData = async (key, value) => {
   try {

@@ -1,7 +1,7 @@
 import { View, Text, Image, StyleSheet, TextInput, Button } from "react-native";
 import { useState, useContext } from "react";
 import { storeData } from "../helpers/asyncStorage";
-import { AuthContext } from "../App";
+import { AuthContext } from "../helpers/asyncStorage";
 
 export default function Onboarding({ navigation: { navigate } }) {
   const { onBoard } = useContext(AuthContext);

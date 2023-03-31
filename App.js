@@ -7,10 +7,12 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { retrieveData, removeItem } from "./helpers/asyncStorage";
 import { useEffect, useState, useReducer, createContext, useMemo } from "react";
 import SplashScren from "./screens/SplashScreen";
+import HomeScreen from "./screens/HomeScreen";
+import { AuthContext } from "./helpers/asyncStorage";
+import { HeaderImage, HeaderNoImage } from "./components/Header";
+import { createItemsTable } from "./helpers/db";
 
 const Stack = createNativeStackNavigator();
-
-export const AuthContext = createContext();
 
 export default function App() {
   const [state, dispatch] = useReducer(
@@ -33,11 +35,19 @@ export default function App() {
             isLoading: false,
             isOnboardingCompleated: false,
           };
+        case "SET_IMAGE":
+          console.log("Setting image");
+          console.log(action.data);
+          return {
+            ...prevState,
+            image: action.data,
+          };
       }
     },
     {
       isLoading: true,
       isOnboardingCompleated: false,
+      image: null,
     }
   );
 
@@ -52,6 +62,9 @@ export default function App() {
       signOut: async () => {
         dispatch({ type: "SIGN_OUT" });
       },
+      setImage: async (data) => {
+        dispatch({ type: "SET_IMAGE", data: data });
+      },
     }),
     []
   );
@@ -59,10 +72,16 @@ export default function App() {
   useEffect(() => {
     (async () => {
       const userEmail = await retrieveData("email");
+      const aiimage = await retrieveData("image");
 
       if (userEmail) {
         dispatch({ type: "ON_BOARD" });
       }
+
+      if (aiimage) {
+        dispatch({ type: "SET_IMAGE", data: aiimage });
+      }
+
       dispatch({ type: "SET_LOADING_FALSE" });
     })();
   }, []);
@@ -81,7 +100,16 @@ export default function App() {
       <AuthContext.Provider value={authContext}>
         <Stack.Navigator>
           {state?.isOnboardingCompleated ? (
-            <Stack.Screen name="Profile" component={ProfileScreen} />
+            <>
+              <Stack.Screen
+                name="Home"
+                component={HomeScreen}
+                options={{
+                  header: (props) => <HeaderNoImage {...props} />,
+                }}
+              />
+              <Stack.Screen name="Profile" component={ProfileScreen} />
+            </>
           ) : (
             <Stack.Screen name="Onboarding" component={Onboarding} />
           )}

@@ -9,7 +9,7 @@ import {
 import { useEffect, useState, useContext } from "react";
 import { MaskedTextInput } from "react-native-mask-text";
 import * as ImagePicker from "expo-image-picker";
-import { AuthContext } from "../App";
+import { AuthContext } from "../helpers/asyncStorage";
 
 export default function ProfileScreen() {
   const { signOut } = useContext(AuthContext);
