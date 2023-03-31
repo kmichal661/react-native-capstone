@@ -6,9 +6,9 @@ import {
   StyleSheet,
   Image,
 } from "react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Main from "../components/Main";
-import { Button } from "react-native-paper";
+import { Button, TextInput } from "react-native-paper";
 import {
   getAllItems,
   createItemsTable,
@@ -16,6 +16,7 @@ import {
   clearItemsTable,
   db,
 } from "../helpers/db";
+import { debounce } from "lodash";
 
 const ItemDivider = () => {
   return (
@@ -52,7 +53,7 @@ function MenuItem({ name, price, category, description, image }) {
 export default function HomeScreen() {
   const [apiData, setApiData] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [act, setAct] = useState(false);
+  const [currentPhrase, setCurrentPhrase] = useState("");
 
   function insertItemsToDb(items) {
     for (item of items) {
@@ -60,11 +61,26 @@ export default function HomeScreen() {
     }
   }
 
+  function filterOnSearch(phrase) {
+    console.log(phrase);
+    setCurrentPhrase(phrase);
+    db.transaction((tx) => {
+      tx.executeSql(
+        `SELECT * FROM items WHERE name LIKE '%${phrase}%' AND category IN (?, ?, ?, ?)`,
+        [...selectedCategories],
+        (txObj, resultSet) => {
+          console.log(resultSet);
+          setApiData(resultSet.rows._array);
+        },
+        (txObj, error) => console.log(error)
+      );
+    });
+  }
+
+  const filterDebounced = useCallback(debounce(filterOnSearch, 500), []);
+
   function filterOnPress(value) {
-    console.log(value);
     const categies = selectedCategories;
-    console.log(categies);
-    setAct(!act);
     if (categies.includes(value)) {
       // remove the value
       let index = categies.indexOf(value);
@@ -80,10 +96,9 @@ export default function HomeScreen() {
     if (categies.length >= 1) {
       db.transaction((tx) => {
         tx.executeSql(
-          `SELECT * FROM items WHERE category IN (?, ?, ?, ?)`,
+          `SELECT * FROM items WHERE name LIKE '%${currentPhrase}%' AND category IN (?, ?, ?, ?)`,
           [...categies],
           (txObj, resultSet) => {
-            console.log(resultSet);
             setApiData(resultSet.rows._array);
           },
           (txObj, error) => console.log(error)
@@ -139,6 +154,15 @@ export default function HomeScreen() {
     <>
       <SafeAreaView style={styles.container}>
         <Main />
+        <View style={styles.searchBar}>
+          <TextInput
+            style={styles.formTextInput}
+            mode="outlined"
+            textColor="#777"
+            left={<TextInput.Icon icon="card-search-outline" />}
+            onChangeText={(text) => filterDebounced(text)}
+          />
+        </View>
         <View style={styles.orderView}>
           <Text style={styles.orderText}>Order For Delivery!</Text>
           <View style={styles.orderViewButtons}>
@@ -262,5 +286,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     padding: 10,
     fontWeight: "bold",
+  },
+  searchBar: {
+    backgroundColor: "#495E57",
+  },
+  formTextInput: {
+    margin: 10,
   },
 });
