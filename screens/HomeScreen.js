@@ -51,10 +51,56 @@ function MenuItem({ name, price, category, description, image }) {
 
 export default function HomeScreen() {
   const [apiData, setApiData] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [act, setAct] = useState(false);
 
   function insertItemsToDb(items) {
     for (item of items) {
       addItem(item);
+    }
+  }
+
+  function filterOnPress(value) {
+    console.log(value);
+    const categies = selectedCategories;
+    console.log(categies);
+    setAct(!act);
+    if (categies.includes(value)) {
+      // remove the value
+      let index = categies.indexOf(value);
+      if (index > -1) {
+        categies.splice(index, 1);
+      }
+      setSelectedCategories(categies);
+    } else {
+      categies.push(value);
+      setSelectedCategories(categies);
+    }
+
+    if (categies.length >= 1) {
+      db.transaction((tx) => {
+        tx.executeSql(
+          `SELECT * FROM items WHERE category IN (?, ?, ?, ?)`,
+          [...categies],
+          (txObj, resultSet) => {
+            console.log(resultSet);
+            setApiData(resultSet.rows._array);
+          },
+          (txObj, error) => console.log(error)
+        );
+      });
+    } else {
+      db.transaction((tx) => {
+        tx.executeSql(
+          "SELECT * FROM items",
+          [],
+          (txObj, resultSet) => {
+            console.log(resultSet);
+            setApiData(resultSet.rows._array);
+          },
+          (txObj, error) => console.log(error)
+        );
+      });
     }
   }
 
@@ -100,7 +146,13 @@ export default function HomeScreen() {
               style={styles.changeButton}
               mode="outlined"
               compact={true}
-              textColor="#777"
+              textColor={
+                selectedCategories.includes("starters") ? "white" : "#777"
+              }
+              buttonColor={
+                selectedCategories.includes("starters") ? "#333333" : null
+              }
+              onPress={() => filterOnPress("starters")}
             >
               Starters
             </Button>
@@ -108,7 +160,13 @@ export default function HomeScreen() {
               style={styles.changeButton}
               mode="outlined"
               compact={true}
-              textColor="#777"
+              textColor={
+                selectedCategories.includes("mains") ? "white" : "#777"
+              }
+              buttonColor={
+                selectedCategories.includes("mains") ? "#333333" : null
+              }
+              onPress={() => filterOnPress("mains")}
             >
               Mains
             </Button>
@@ -116,7 +174,13 @@ export default function HomeScreen() {
               style={styles.changeButton}
               mode="outlined"
               compact={true}
-              textColor="#777"
+              textColor={
+                selectedCategories.includes("desserts") ? "white" : "#777"
+              }
+              buttonColor={
+                selectedCategories.includes("desserts") ? "#333333" : null
+              }
+              onPress={() => filterOnPress("desserts")}
             >
               Desserts
             </Button>
@@ -124,7 +188,13 @@ export default function HomeScreen() {
               style={styles.changeButton}
               mode="outlined"
               compact={true}
-              textColor="#777"
+              textColor={
+                selectedCategories.includes("drinks") ? "white" : "#777"
+              }
+              buttonColor={
+                selectedCategories.includes("drinks") ? "#333333" : null
+              }
+              onPress={() => filterOnPress("drinks")}
             >
               Drinks
             </Button>

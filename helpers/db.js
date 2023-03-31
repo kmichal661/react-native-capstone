@@ -14,6 +14,19 @@ export function createItemsTable() {
   });
 }
 
+export async function getItemsByCategory() {
+  db.transaction((tx) => {
+    tx.executeSql(
+      "SELECT * FROM items WHERE category IN (starters)",
+      [],
+      (txObj, resultSet) => {
+        return resultSet.rows._array;
+      },
+      (txObj, error) => console.log(error)
+    );
+  });
+}
+
 export async function getAllItems() {
   db.transaction((tx) => {
     tx.executeSql(
