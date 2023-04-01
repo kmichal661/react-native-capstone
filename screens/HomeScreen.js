@@ -64,17 +64,32 @@ export default function HomeScreen() {
   function filterOnSearch(phrase) {
     console.log(phrase);
     setCurrentPhrase(phrase);
-    db.transaction((tx) => {
-      tx.executeSql(
-        `SELECT * FROM items WHERE name LIKE '%${phrase}%' AND category IN (?, ?, ?, ?)`,
-        [...selectedCategories],
-        (txObj, resultSet) => {
-          console.log(resultSet);
-          setApiData(resultSet.rows._array);
-        },
-        (txObj, error) => console.log(error)
-      );
-    });
+
+    if (selectedCategories && selectedCategories.length >= 1) {
+      db.transaction((tx) => {
+        tx.executeSql(
+          `SELECT * FROM items WHERE name LIKE '%${phrase}%' AND category IN (?, ?, ?, ?)`,
+          [...selectedCategories],
+          (txObj, resultSet) => {
+            console.log(resultSet);
+            setApiData(resultSet.rows._array);
+          },
+          (txObj, error) => console.log(error)
+        );
+      });
+    } else {
+      db.transaction((tx) => {
+        tx.executeSql(
+          `SELECT * FROM items WHERE name LIKE '%${phrase}%'`,
+          [],
+          (txObj, resultSet) => {
+            console.log(resultSet);
+            setApiData(resultSet.rows._array);
+          },
+          (txObj, error) => console.log(error)
+        );
+      });
+    }
   }
 
   const filterDebounced = useCallback(debounce(filterOnSearch, 500), []);
@@ -107,7 +122,7 @@ export default function HomeScreen() {
     } else {
       db.transaction((tx) => {
         tx.executeSql(
-          "SELECT * FROM items",
+          `SELECT * FROM items WHERE name LIKE '%${currentPhrase}%'`,
           [],
           (txObj, resultSet) => {
             console.log(resultSet);
