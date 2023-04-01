@@ -4,6 +4,17 @@ import { useEffect, useState } from "react";
 import { retrieveData } from "../helpers/asyncStorage";
 
 export function HeaderNoImage({ navigation }) {
+  const [image, setImage] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      console.log("Getting image from header");
+
+      const aiimage = await retrieveData("image");
+      aiimage ? setImage(aiimage) : null;
+    })();
+  }, []);
+
   return (
     <View style={styles.container}>
       <Image
@@ -11,12 +22,20 @@ export function HeaderNoImage({ navigation }) {
         source={require("../assets/Images/Logo.png")}
       />
       <Pressable onPress={() => navigation.navigate("Profile")}>
-        <Avatar.Text style={styles.avatar} size={30} label="JD" />
+        {image && image !== null ? (
+          <Avatar.Image
+            style={styles.avatar}
+            size={30}
+            source={{ uri: image }}
+          />
+        ) : (
+          <Avatar.Text style={styles.avatar} size={30} label="JD" />
+        )}
       </Pressable>
     </View>
   );
 }
-export function HeaderImage({ navigation, image }) {
+export function HeaderImage({ navigation }) {
   return (
     <View style={styles.container}>
       <Image
@@ -24,7 +43,8 @@ export function HeaderImage({ navigation, image }) {
         source={require("../assets/Images/Logo.png")}
       />
       <Pressable onPress={navigation.navigate("Profile")}>
-        <Avatar.Image style={styles.avatar} size={30} source={{ uri: image }} />
+        <Avatar.Text style={styles.avatar} size={30} label="JD" />
+        {/* <Avatar.Image style={styles.avatar} size={30} source={{ uri: image }} /> */}
       </Pressable>
     </View>
   );
